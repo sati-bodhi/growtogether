@@ -1,0 +1,43 @@
+// filepath: /home/sati/BLNG/garden-log/firestore.rules
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Function to check if user owns the resource
+    function isOwner(resource) {
+      return isAuthenticated() && 
+             request.auth.uid == resource.data.createdBy;
+    }
+
+    // Global rules for all collections
+    match /{document=**} {
+      allow read: if isAuthenticated();
+    }
+    
+    // Rules for gardens collection
+    match /gardens/{gardenId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if isOwner(resource);
+    }
+    
+    // Rules for plants collection
+    match /plants/{plantId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if isOwner(resource);
+    }
+    
+    // Rules for observations subcollection
+    match /gardens/{gardenId}/observations/{observationId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if isAuthenticated() && 
+                             request.auth.uid == request.resource.data.createdBy;
+    }
+  }
+}
