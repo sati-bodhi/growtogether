@@ -1,11 +1,20 @@
 import React from 'react';
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes, Link } from 'react-router-dom';
+
+// Import diagnostics pages
+import GardensDiagnostics from './features/GardensDiagnostics';
+import PlantsDiagnostics from './features/PlantsDiagnostics';
+import CameraDiagnostics from './services/CameraDiagnostics';
+import LocationDiagnostics from './services/LocationDiagnostics';
 
 const DiagnosticsRouter = () => {
   return (
     <Routes>
-      <Route path="/diagnostics" element={<DiagnosticsHome />} />
-      {/* Add routes for feature diagnostics */}
+      <Route path="/" element={<DiagnosticsHome />} />
+      <Route path="/gardens" element={<GardensDiagnostics />} />
+      <Route path="/plants" element={<PlantsDiagnostics />} />
+      <Route path="/camera" element={<CameraDiagnostics />} />
+      <Route path="/location" element={<LocationDiagnostics />} />
     </Routes>
   );
 };
@@ -13,8 +22,12 @@ const DiagnosticsRouter = () => {
 const DiagnosticsHome = () => (
   <div>
     <h1>Feature Diagnostics</h1>
+    <p>Select a feature to test independently:</p>
     <ul>
-      {/* Add links to feature diagnostics */}
+      <li><Link to="/diagnostics/gardens">Gardens Feature</Link></li>
+      <li><Link to="/diagnostics/plants">Plants Feature</Link></li>
+      <li><Link to="/diagnostics/camera">Camera Service</Link></li>
+      <li><Link to="/diagnostics/location">Location Service</Link></li>
     </ul>
   </div>
 );
