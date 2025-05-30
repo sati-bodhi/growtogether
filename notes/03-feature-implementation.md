@@ -4,7 +4,7 @@
 
 Each feature follows a consistent organization pattern:
 
-```
+```sh
 feature-name/
 ├── components/   # Feature-specific UI components
 ├── hooks/        # Custom hooks for feature functionality
@@ -18,12 +18,14 @@ feature-name/
 **Purpose**: Manage garden spaces and their members
 
 **Key Components**:
+
 - GardenList - Display all user gardens
 - GardenDetail - Show garden details and stats
 - GardenForm - Create/edit garden
 - GardenMembers - Manage garden membership
 
 **API Layer**:
+
 - CRUD operations for gardens
 - Member management (invites, roles)
 
@@ -32,11 +34,13 @@ feature-name/
 **Purpose**: Track plants within gardens
 
 **Key Components**:
+
 - PlantList - Display plants in a garden
 - PlantDetail - Show plant details and history
 - PlantForm - Add/edit plants
 
 **API Layer**:
+
 - CRUD operations for plants
 - Plant status updates
 
@@ -45,11 +49,13 @@ feature-name/
 **Purpose**: Record observations about gardens and plants
 
 **Key Components**:
+
 - ObservationList - Timeline of observations
 - ObservationDetail - View observation details
 - ObservationForm - Add new observations with photos
 
 **API Layer**:
+
 - CRUD operations for observations
 - Image handling with camera service
 
@@ -58,11 +64,13 @@ feature-name/
 **Purpose**: Manage gardening tasks and assignments
 
 **Key Components**:
+
 - TaskList - Display tasks with filters
 - TaskCalendar - Calendar view of tasks
 - TaskForm - Create/edit tasks
 
 **API Layer**:
+
 - CRUD operations for tasks
 - Task status updates
 - Task assignment management
@@ -72,11 +80,13 @@ feature-name/
 **Purpose**: Handle user authentication
 
 **Key Components**:
+
 - LoginForm - User login
 - RegisterForm - User registration
 - PasswordReset - Password recovery
 
 **API Layer**:
+
 - Firebase Auth operations
 - AuthContext for user state
 
@@ -85,10 +95,12 @@ feature-name/
 **Purpose**: Manage user profiles and preferences
 
 **Key Components**:
+
 - UserProfile - Display user information
 - UserSettings - User preferences
 
 **API Layer**:
+
 - Profile data operations
 - User settings management
 

@@ -1,6 +1,7 @@
 # Development Workflow
 
 ## Feature Development Process
+
 1. **Plan Feature**
    - Define data model
    - Identify component requirements
@@ -31,25 +32,126 @@
    - Verify interactions with other features
 
 ## Diagnostic System Usage
+
 The diagnostic system allows testing features in isolation. Access it:
 
 - In development: http://localhost:3000/diagnostics
 - In production: Press Ctrl+Shift+D to enable, then navigate to /diagnostics
 
+## Environment Configuration
+
+We use a simplified approach to manage development and production environments:
+
+### Environment Setup
+
+- **Development**: Uses local Firebase emulators
+- **Staging**: Points to production Firebase but for testing purposes
+- **Production**: Full production environment
+
+### Configuration File
+
+```jsx
+// src/config/environment.js
+const environments = {
+  development: {
+    useEmulators: true,
+    projectId: 'blng-beda9'
+  },
+  staging: {
+    useEmulators: false,
+    projectId: 'blng-beda9'
+  },
+  production: {
+    useEmulators: false,
+    projectId: 'blng-beda9'
+  }
+};
+
+// Default to development
+const ENV = process.env.REACT_APP_ENV || 'development';
+
+export default environments[ENV];
+```
+
 ## Firebase Emulator Usage
+
 For local development, use Firebase emulators:
 
 ```bash
+# Start the emulators
+npm run emulators
+# or directly:
 firebase emulators:start
 ```
 
-Configure the application to use emulators by setting appropriate environment variables in `.env.local`:
+Our Firebase service initializes automatically based on the environment:
 
+```jsx
+// src/services/firebase.js
+import env from '../config/environment';
+
+// Firebase initialization code...
+
+// Connect to emulators automatically in development
+if (env.useEmulators) {
+  connectFirestoreEmulator(db, 'localhost', 8080);
+  connectAuthEmulator(auth, 'http://localhost:9099');
+  connectStorageEmulator(storage, 'localhost', 9199');
+}
 ```
-REACT_APP_USE_EMULATORS=true
+
+## Environment Scripts
+
+```json
+"scripts": {
+  "start": "REACT_APP_ENV=development react-scripts start",
+  "start:prod": "REACT_APP_ENV=staging react-scripts start",
+  "build": "REACT_APP_ENV=production react-scripts build",
+  "emulators": "firebase emulators:start"
+}
+```
+
+## Testing Features in Production
+
+To test features in the production environment before full release:
+
+1. Run app in staging mode: `npm run start:prod`
+2. Use feature flags to control visibility of new features
+3. Or add query parameters for testing: `https://your-app.com?NEW_FEATURE=true`
+
+## Feature Flag System
+
+```jsx
+// Simple feature flag component example
+import React from 'react';
+import env from '../config/environment';
+
+// Feature flags based on environment
+const FEATURE_FLAGS = {
+  NEW_GARDEN_UI: env.ENV !== 'production',
+  ENHANCED_CAMERA: false, // disabled everywhere
+};
+
+// Query parameter overrides
+if (typeof window !== 'undefined') {
+  const params = new URLSearchParams(window.location.search);
+  Object.keys(FEATURE_FLAGS).forEach(flag => {
+    if (params.has(flag)) {
+      FEATURE_FLAGS[flag] = params.get(flag) === 'true';
+    }
+  });
+}
+
+export const FeatureFlag = ({ feature, children, fallback = null }) => {
+  if (FEATURE_FLAGS[feature]) {
+    return <>{children}</>;
+  }
+  return fallback;
+};
 ```
 
 ## Code Quality Standards
+
 - **Components**: Follow functional component pattern with hooks
 - **State Management**: Use React Context for shared state
 - **Error Handling**: Consistent error handling in API functions
@@ -57,6 +159,7 @@ REACT_APP_USE_EMULATORS=true
 - **Testing**: Test each feature independently before integration
 
 ## Git Workflow
+
 - Main branch: Production-ready code
 - Development branch: Integration of features
 - Feature branches: Individual feature development
