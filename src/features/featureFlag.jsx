@@ -5,7 +5,7 @@ import env from '../config/environment';
 const FEATURE_FLAGS = {
   NEW_GARDEN_UI: false,  // Only in dev/staging
   ENHANCED_CAMERA: false,                   // Disabled everywhere
-  WEBCAM_CAMERA: env.ENV !== 'production',  // Our new react-webcam implementation
+  BASIC_CAMERA: env.ENV !== 'production',  // Our new react-webcam implementation
 };
 
 // Query parameter overrides for testing

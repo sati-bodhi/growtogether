@@ -145,7 +145,5 @@ Currently using a mock implementation that simulates Cloudinary uploads. The act
 ## Future Enhancements
 
 - Implement actual Cloudinary integration
-- Add image filters and editing capabilities
-- Support for video recording
 - Offline support for image capture and queued uploads
-- Add machine learning integration for plant identification
+- Add PlantNet API integration for plant identification
