@@ -1,8 +1,9 @@
 import React from 'react';
 import { Route, Routes, Link } from 'react-router-dom';
 
-// Import only CameraDiagnostics, create placeholders for the others
+// Import diagnostics components
 import CameraDiagnostics from './services/CameraDiagnostics';
+import CloudinaryDiagnostics from './services/CloudinaryDiagnostics';
 
 // Placeholder components for future implementation
 const GardensDiagnostics = () => <div>Gardens Diagnostics - Coming Soon</div>;
@@ -16,6 +17,7 @@ const DiagnosticsRouter = () => {
       <Route path="/gardens" element={<GardensDiagnostics />} />
       <Route path="/plants" element={<PlantsDiagnostics />} />
       <Route path="/camera" element={<CameraDiagnostics />} />
+      <Route path="/cloudinary" element={<CloudinaryDiagnostics />} />
       <Route path="/location" element={<LocationDiagnostics />} />
     </Routes>
   );
@@ -29,6 +31,7 @@ const DiagnosticsHome = () => (
       <li><Link to="/diagnostics/gardens">Gardens Feature</Link></li>
       <li><Link to="/diagnostics/plants">Plants Feature</Link></li>
       <li><Link to="/diagnostics/camera">Camera Service</Link></li>
+      <li><Link to="/diagnostics/cloudinary">Cloudinary Uploads</Link></li>
       <li><Link to="/diagnostics/location">Location Service</Link></li>
     </ul>
   </div>

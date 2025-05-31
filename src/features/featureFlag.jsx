@@ -3,9 +3,16 @@ import env from '../config/environment';
 
 // Feature flags based on environment
 const FEATURE_FLAGS = {
-  NEW_GARDEN_UI: false,  // Only in dev/staging
-  ENHANCED_CAMERA: false,                   // Disabled everywhere
-  BASIC_CAMERA: env.ENV !== 'production',  // Our new react-webcam implementation
+  // Original flags
+  NEW_GARDEN_UI: env.ENV !== 'production',
+  ENHANCED_CAMERA: false,
+  BASIC_CAMERA: env.ENV !== 'production',
+  IMAGE_OPTIMIZATION: true,
+  USE_MOCK_UPLOADS: env.ENV === 'development',
+  
+  // New Cloudinary-specific flags
+  USE_DIRECT_CLOUDINARY: false,  // Default to proxy upload for security
+  CLOUDINARY_DEBUG: env.ENV !== 'production',  // Enable detailed logs in non-production
 };
 
 // Query parameter overrides for testing
