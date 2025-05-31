@@ -1,177 +1,153 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import Webcam from 'react-webcam';
-import useCamera from '../../services/camera/hooks/useCamera';
+import WebCameraModal from '../../services/camera/components/WebCameraModal';
+import './CameraDiagnostics.css';
 
 const CameraDiagnostics = () => {
-  const {
-    webcamRef,
-    photo,
-    isLoading,
-    error,
-    facingMode,
-    videoConstraints,
-    uploadProgress,
-    capturePhoto,
-    resetPhoto,
-    toggleFacingMode,
-    uploadPhoto
-  } = useCamera();
+  const [showWebcam, setShowWebcam] = useState(false);
+  const [useNativeCamera, setUseNativeCamera] = useState(false); // We'll set this in useEffect
+  const [photo, setPhoto] = useState(null);
+  const [error, setError] = useState(null);
+  const fileInputRef = useRef(null);
+  
+  // Detect mobile device once on component mount
+  const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent
+  );
+
+  // Set default camera type based on device, but respect user preference if saved
+  useEffect(() => {
+    const savedPref = localStorage.getItem('useNativeCamera');
+    
+    if (savedPref !== null) {
+      // User has a saved preference, use that
+      setUseNativeCamera(savedPref === 'true');
+    } else {
+      // No saved preference, default based on device type
+      setUseNativeCamera(isMobileDevice);
+      localStorage.setItem('useNativeCamera', isMobileDevice);
+    }
+  }, [isMobileDevice]);
+
+  const handleToggleCamera = () => {
+    const newValue = !useNativeCamera;
+    setUseNativeCamera(newValue);
+    localStorage.setItem('useNativeCamera', newValue);
+  };
+
+  const handleActivateCamera = () => {
+    setError(null);
+    if (useNativeCamera) {
+      fileInputRef.current?.click();
+    } else {
+      handleOpenWebCamera();
+    }
+  };
+
+  const handleOpenWebCamera = () => {
+    setError(null);
+    setShowWebcam(true);
+  };
+
+  const handleNativeCapture = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target.result;
+      setPhoto(dataUrl);
+
+      fetch(dataUrl)
+        .then(res => res.blob())
+        .catch(err => setError(`Failed to process image: ${err.message}`));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleWebcamCapture = (dataUrl) => {
+    setPhoto(dataUrl);
+    fetch(dataUrl)
+      .then(res => res.blob())
+      .catch(err => setError(`Failed to process image: ${err.message}`));
+    setShowWebcam(false);
+  };
 
   return (
-    <div style={{ maxWidth: '600px', margin: '0 auto', padding: '20px' }}>
+    <div className="camera-diagnostics">
       <Link to="/diagnostics">← Back to Diagnostics</Link>
       <h1>Camera Diagnostics</h1>
       
-      {!photo ? (
-        <div>
-          <div style={{ 
-            border: '1px solid #ccc',
-            borderRadius: '8px',
-            overflow: 'hidden',
-            marginBottom: '20px',
-            position: 'relative',
-            background: '#000'
-          }}>
-            <Webcam
-              audio={false}
-              ref={webcamRef}
-              videoConstraints={videoConstraints}
-              screenshotFormat="image/jpeg"
-              width="100%"
-              height="auto"
-              mirrored={facingMode === "user"}
-              style={{ display: 'block' }}
-              onUserMediaError={(err) => console.error("Webcam Error:", err)}
-              playsInline={true}         // Add this for iOS
-              forceScreenshotSourceSize  // Add this for consistent photos
+      <div className="camera-options">
+        <div className="option-label">Camera Interface</div>
+        <div className="toggle-container">
+          <label className="toggle-switch">
+            <input
+              type="checkbox"
+              checked={!useNativeCamera}
+              onChange={handleToggleCamera}
             />
-            
-            {isLoading && (
-              <div style={{
-                position: 'absolute',
-                top: 0, left: 0, right: 0, bottom: 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'rgba(0,0,0,0.6)',
-                color: 'white'
-              }}>
-                Loading camera...
-              </div>
-            )}
-          </div>
-          
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <button 
-              onClick={toggleFacingMode}
-              style={{
-                padding: '10px 15px',
-                background: '#555',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-              }}
-            >
-              Switch Camera ({facingMode === "user" ? "Front" : "Back"})
-            </button>
-            
-            <button 
-              onClick={capturePhoto}
-              style={{
-                padding: '10px 15px',
-                background: '#4CAF50',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-              }}
-            >
-              Take Photo
-            </button>
-          </div>
+            <span className="toggle-slider"></span>
+          </label>
+          <span>{useNativeCamera ? 'Using Native Camera' : 'Using Web Camera'}</span>
+        </div>
+      </div>
+      
+      {!photo ? (
+        <div className="camera-activation">
+          <button 
+            onClick={handleActivateCamera} 
+            className="activate-button"
+          >
+            Open {useNativeCamera ? 'Native' : 'Web'} Camera
+          </button>
+          <p className="instruction">
+            Click the button above to activate the {useNativeCamera ? 'native device' : 'web'} camera
+          </p>
+          <p className="device-info">
+            <small>
+              {isMobileDevice ? 'Mobile device detected' : 'Desktop device detected'} 
+              {useNativeCamera !== isMobileDevice ? ' (overridden by user)' : ''}
+            </small>
+          </p>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={handleNativeCapture}
+            style={{ display: 'none' }}
+          />
         </div>
       ) : (
-        <div>
-          <div style={{ 
-            border: '1px solid #ccc',
-            borderRadius: '8px',
-            overflow: 'hidden',
-            marginBottom: '20px'
-          }}>
-            <img 
-              src={photo} 
-              alt="Captured" 
-              style={{ display: 'block', width: '100%' }}
-            />
+        <div className="photo-preview">
+          <img src={photo} alt="Captured" />
+          <div className="photo-actions">
+            <button onClick={() => setPhoto(null)}>Retake</button>
+            <button>Upload (Mock)</button>
           </div>
-          
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <button 
-              onClick={resetPhoto}
-              style={{
-                padding: '10px 15px',
-                background: '#555',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-              }}
-            >
-              Retake Photo
-            </button>
-            
-            <button 
-              onClick={() => uploadPhoto('diagnostics')}
-              disabled={isLoading}
-              style={{
-                padding: '10px 15px',
-                background: '#2196F3',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                opacity: isLoading ? 0.7 : 1
-              }}
-            >
-              {isLoading ? `Uploading (${uploadProgress}%)` : 'Upload Photo'}
-            </button>
-          </div>
-          
-          {isLoading && (
-            <div style={{ 
-              height: '6px', 
-              background: '#eee', 
-              marginTop: '15px',
-              borderRadius: '3px',
-              overflow: 'hidden'
-            }}>
-              <div style={{ 
-                width: `${uploadProgress}%`, 
-                height: '100%', 
-                background: '#4CAF50',
-                transition: 'width 0.3s ease'
-              }} />
-            </div>
-          )}
         </div>
       )}
       
       {error && (
-        <div style={{ 
-          color: '#f44336', 
-          marginTop: '20px', 
-          padding: '10px', 
-          background: '#ffebee', 
-          borderRadius: '4px'
-        }}>
+        <div className="error-message">
           {error}
         </div>
       )}
+
+      <WebCameraModal 
+        isOpen={showWebcam}
+        onClose={() => setShowWebcam(false)}
+        onCapture={handleWebcamCapture}
+      />
       
-      <div style={{ marginTop: '30px', borderTop: '1px solid #eee', paddingTop: '20px' }}>
-        <h3>Technical Notes</h3>
+      <div className="technical-notes">
+        <h2>Technical Notes</h2>
         <ul>
-          <li>Using react-webcam for camera access</li>
+          <li>Using react-webcam for photography</li>
           <li>Mock Cloudinary API for image uploads</li>
-          <li>Test both front and back cameras if available</li>
+          <li>Toggle between web camera and native device camera</li>
+          <li><strong>Default:</strong> Native camera on mobile, Web camera on desktop</li>
         </ul>
       </div>
     </div>

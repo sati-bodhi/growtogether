@@ -3,6 +3,7 @@ import { uploadImage, saveImageMetadata } from "../api";
 
 const useCamera = (options = {}) => {
   const webcamRef = useRef(null);
+  const streamRef = useRef(null); // Change from useState to useRef
   const [photo, setPhoto] = useState(null);
   const [photoBlob, setPhotoBlob] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -10,6 +11,7 @@ const useCamera = (options = {}) => {
   const [facingMode, setFacingMode] = useState(options.facingMode || "environment");
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadedImageUrl, setUploadedImageUrl] = useState(null);
+  const [isCameraActive, setIsCameraActive] = useState(false);
 
   // Detect browser environment
   const isMobile = useMemo(() => {
@@ -24,73 +26,65 @@ const useCamera = (options = {}) => {
     facingMode
   }), [facingMode, isMobile]);
 
-  useEffect(() => {
-    let streamRef = null;
-    let mounted = true; // Track component mount state
+  const initializeCamera = useCallback(async () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+    }
 
-    const startCamera = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        
-        console.log("Starting camera with constraints:", JSON.stringify(videoConstraints));
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: videoConstraints,
-          audio: false
-        });
-        
-        console.log("Camera stream obtained successfully");
-        streamRef = stream;
-        
-        if (!mounted) {
-          console.log("Component unmounted, stopping stream");
-          stream.getTracks().forEach(track => track.stop());
-          return;
-        }
-        
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: videoConstraints,
+        audio: false
+      });
+
+      streamRef.current = stream; // Use .current for refs
+      setIsCameraActive(true);
+
+      setTimeout(() => {
         if (webcamRef.current) {
-          console.log("Setting stream to webcam ref");
-          
-          // For desktop browsers, direct assignment works best
           webcamRef.current.srcObject = stream;
-          
-          // For iOS, ensure a slight delay and a play attempt
-          if (isMobile) {
-            setTimeout(() => {
-              if (webcamRef.current && webcamRef.current.video) {
-                webcamRef.current.video.play().catch(e => console.log("Video play error:", e));
-              }
-            }, 100);
+
+          if (isMobile && webcamRef.current.video) {
+            webcamRef.current.video.play().catch(e => console.log("Video play error:", e));
           }
-          
+
           setIsLoading(false);
         } else {
-          console.error("webcamRef is null when trying to set stream");
-          setError("Camera initialization failed - webcam element not ready");
+          setError("Camera initialization failed - please try again");
         }
-      } catch (err) {
-        console.error("Camera access error:", err);
-        if (mounted) {
-          setError(`Failed to access camera: ${err.message}`);
-          setIsLoading(false);
-        }
-      }
-    };
-
-    startCamera();
-
-    return () => {
-      mounted = false;
-      if (streamRef) {
-        console.log("Cleanup: Stopping all tracks");
-        const tracks = streamRef.getTracks();
-        tracks.forEach(track => {
-          console.log(`Stopping track: ${track.kind}`);
-          track.stop();
-        });
-      }
-    };
+      }, 100);
+    } catch (err) {
+      setError(`Failed to access camera: ${err.message}`);
+      setIsLoading(false);
+    }
   }, [videoConstraints, isMobile]);
+
+  const releaseCamera = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+      setIsCameraActive(false);
+    }
+  }, []); // No dependencies needed when using refs
+
+  const toggleFacingMode = useCallback(() => {
+    releaseCamera();
+    setFacingMode(prevMode => prevMode === "user" ? "environment" : "user");
+    setTimeout(() => {
+      initializeCamera();
+    }, 100);
+  }, [releaseCamera, initializeCamera]);
+
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []);
 
   const capturePhoto = useCallback(() => {
     if (!webcamRef.current) {
@@ -124,10 +118,6 @@ const useCamera = (options = {}) => {
     setPhotoBlob(null);
     setUploadProgress(0);
     setUploadedImageUrl(null);
-  }, []);
-
-  const toggleFacingMode = useCallback(() => {
-    setFacingMode(prevMode => prevMode === "user" ? "environment" : "user");
   }, []);
 
   const uploadPhoto = useCallback(async (path = "images", metadata = {}) => {
@@ -185,6 +175,9 @@ const useCamera = (options = {}) => {
     resetPhoto,
     toggleFacingMode,
     uploadPhoto,
+    initializeCamera,
+    releaseCamera,
+    isCameraActive,
   };
 };
 
