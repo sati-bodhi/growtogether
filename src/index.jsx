@@ -1,14 +1,19 @@
+import './config/process-env'; // Add this as the first import
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client'; // Update import
 import './styles/index.css';
 import App from './App';
+import reportWebVitals from './reportWebVitals';
 
-ReactDOM.render(
+// New React 18 rendering method
+const root = createRoot(document.getElementById('root'));
+root.render(
   <React.StrictMode>
     <App />
-  </React.StrictMode>,
-  document.getElementById('root')
+  </React.StrictMode>
 );
+
+reportWebVitals();
 
 // Add diagnostics enabler (hidden from normal users)
 if (process.env.NODE_ENV === 'production') {

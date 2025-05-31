@@ -5,13 +5,20 @@ import { getAuth, connectAuthEmulator } from 'firebase/auth';
 import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
 import env from '../config/environment';
 
+// Safely access environment variables with fallbacks
+const getEnv = (key, fallback = '') => {
+  return typeof process !== 'undefined' && process.env && process.env[key] 
+    ? process.env[key] 
+    : fallback;
+};
+
 const firebaseConfig = {
-  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
-  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.REACT_APP_FIREBASE_APP_ID
+  apiKey: getEnv('REACT_APP_FIREBASE_API_KEY'),
+  authDomain: getEnv('REACT_APP_FIREBASE_AUTH_DOMAIN'),
+  projectId: getEnv('REACT_APP_FIREBASE_PROJECT_ID'),
+  storageBucket: getEnv('REACT_APP_FIREBASE_STORAGE_BUCKET'),
+  messagingSenderId: getEnv('REACT_APP_FIREBASE_MESSAGING_SENDER_ID'),
+  appId: getEnv('REACT_APP_FIREBASE_APP_ID')
 };
 
 const app = initializeApp(firebaseConfig);

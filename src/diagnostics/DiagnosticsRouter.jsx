@@ -1,11 +1,13 @@
 import React from 'react';
 import { Route, Routes, Link } from 'react-router-dom';
 
-// Import diagnostics pages
-import GardensDiagnostics from './features/GardensDiagnostics';
-import PlantsDiagnostics from './features/PlantsDiagnostics';
+// Import only CameraDiagnostics, create placeholders for the others
 import CameraDiagnostics from './services/CameraDiagnostics';
-import LocationDiagnostics from './services/LocationDiagnostics';
+
+// Placeholder components for future implementation
+const GardensDiagnostics = () => <div>Gardens Diagnostics - Coming Soon</div>;
+const PlantsDiagnostics = () => <div>Plants Diagnostics - Coming Soon</div>;
+const LocationDiagnostics = () => <div>Location Diagnostics - Coming Soon</div>;
 
 const DiagnosticsRouter = () => {
   return (

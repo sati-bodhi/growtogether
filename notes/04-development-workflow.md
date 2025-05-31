@@ -48,6 +48,12 @@ We use a simplified approach to manage development and production environments:
 - **Staging**: Points to production Firebase but for testing purposes
 - **Production**: Full production environment
 
+### Configuration Structure
+
+- Environment variables in `.env.local` (gitignored) store credentials/secrets
+- Environment switching handled via npm scripts that set `REACT_APP_ENV`
+- No need for multiple `.env` files since scripts set the environment
+
 ### Configuration File
 
 ```jsx
@@ -96,7 +102,8 @@ import env from '../config/environment';
 if (env.useEmulators) {
   connectFirestoreEmulator(db, 'localhost', 8080);
   connectAuthEmulator(auth, 'http://localhost:9099');
-  connectStorageEmulator(storage, 'localhost', 9199');
+  connectFunctionsEmulator(functions, 'localhost', 5001);
+  console.log('Using Firebase emulators');
 }
 ```
 
@@ -121,18 +128,20 @@ To test features in the production environment before full release:
 
 ## Feature Flag System
 
+The feature flag system allows conditional rendering of features based on environment or URL parameters:
+
 ```jsx
-// Simple feature flag component example
+// src/features/featureFlags.jsx
 import React from 'react';
 import env from '../config/environment';
 
 // Feature flags based on environment
 const FEATURE_FLAGS = {
-  NEW_GARDEN_UI: env.ENV !== 'production',
-  ENHANCED_CAMERA: false, // disabled everywhere
+  NEW_GARDEN_UI: env.ENV !== 'production',  // Only in dev/staging
+  ENHANCED_CAMERA: false,                   // Disabled everywhere
 };
 
-// Query parameter overrides
+// Query parameter overrides for testing
 if (typeof window !== 'undefined') {
   const params = new URLSearchParams(window.location.search);
   Object.keys(FEATURE_FLAGS).forEach(flag => {
@@ -142,12 +151,41 @@ if (typeof window !== 'undefined') {
   });
 }
 
+// React component to conditionally render features
 export const FeatureFlag = ({ feature, children, fallback = null }) => {
   if (FEATURE_FLAGS[feature]) {
     return <>{children}</>;
   }
   return fallback;
 };
+```
+
+### Usage Example:
+
+```jsx
+import { FeatureFlag } from '../features/featureFlags';
+
+function GardenPage() {
+  return (
+    <div>
+      {/* Regular UI everyone sees */}
+      <h1>Your Gardens</h1>
+      
+      {/* New UI only in development/staging by default */}
+      <FeatureFlag feature="NEW_GARDEN_UI">
+        <NewGardenInterface />
+      </FeatureFlag>
+      
+      {/* With fallback for disabled features */}
+      <FeatureFlag 
+        feature="ENHANCED_CAMERA" 
+        fallback={<BasicCameraInterface />}
+      >
+        <AdvancedCameraInterface />
+      </FeatureFlag>
+    </div>
+  );
+}
 ```
 
 ## Code Quality Standards
