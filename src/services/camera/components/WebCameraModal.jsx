@@ -1,21 +1,41 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import ReactDOM from "react-dom";
 import Webcam from "react-webcam";
 import useCamera from "../hooks/useCamera";
 
 const WebCameraModal = ({ isOpen, onClose, onCapture }) => {
   const camera = useCamera();
+  const [cameraError, setCameraError] = useState(null);
 
   useEffect(() => {
     if (isOpen && !camera.isCameraActive) {
-      camera.initializeCamera();
+      try {
+        // Add a small delay to ensure any previous camera sessions are fully closed
+        setTimeout(() => {
+          camera.initializeCamera().catch(err => {
+            console.error("Camera initialization error:", err);
+            setCameraError("Failed to access camera. Please check permissions and try again.");
+          });
+        }, 300);
+      } catch (err) {
+        console.error("Camera initialization error:", err);
+        setCameraError("Failed to access camera. Please check permissions and try again.");
+      }
+    }
+
+    // Lock body scroll when modal is open
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
     }
 
     return () => {
-      if (isOpen) {
+      if (camera.isCameraActive) {
         camera.releaseCamera();
       }
+      // Restore scroll when modal closes
+      document.body.style.overflow = "";
     };
-  }, [isOpen, camera.initializeCamera, camera.releaseCamera, camera.isCameraActive]);
+  }, [isOpen, camera]);
 
   if (!isOpen) return null;
 
@@ -27,7 +47,6 @@ const WebCameraModal = ({ isOpen, onClose, onCapture }) => {
     }
   };
 
-  // Define modal styles directly to ensure they're applied
   const modalStyles = {
     overlay: {
       position: "fixed",
@@ -37,7 +56,7 @@ const WebCameraModal = ({ isOpen, onClose, onCapture }) => {
       bottom: 0,
       width: "100vw",
       height: "100vh",
-      zIndex: 9999,
+      zIndex: 2147483647,
       backgroundColor: "#000",
       display: "flex",
       flexDirection: "column",
@@ -55,7 +74,7 @@ const WebCameraModal = ({ isOpen, onClose, onCapture }) => {
       right: 0,
       display: "flex",
       justifyContent: "center",
-      zIndex: 10000
+      zIndex: 2147483648
     },
     captureButton: {
       width: "70px",
@@ -77,7 +96,7 @@ const WebCameraModal = ({ isOpen, onClose, onCapture }) => {
       border: "none",
       color: "white",
       fontSize: "20px",
-      zIndex: 10000,
+      zIndex: 2147483648,
       display: "flex",
       alignItems: "center",
       justifyContent: "center"
@@ -86,7 +105,7 @@ const WebCameraModal = ({ isOpen, onClose, onCapture }) => {
       position: "absolute",
       top: "20px",
       left: "20px",
-      zIndex: 10000,
+      zIndex: 2147483648,
       background: "rgba(0,0,0,0.5)",
       color: "white",
       border: "none",
@@ -97,18 +116,49 @@ const WebCameraModal = ({ isOpen, onClose, onCapture }) => {
       display: "flex",
       alignItems: "center",
       justifyContent: "center"
+    },
+    errorMessage: {
+      position: "absolute",
+      bottom: "100px", 
+      left: "50%",
+      transform: "translateX(-50%)",
+      background: "rgba(255,0,0,0.7)",
+      color: "white",
+      padding: "12px 20px",
+      borderRadius: "8px",
+      textAlign: "center",
+      maxWidth: "80%",
+      zIndex: 2147483648
     }
   };
 
-  return (
+  // Use portal to render modal at the body level
+  const modal = (
     <div style={modalStyles.overlay}>
-      <Webcam
-        audio={false}
-        ref={camera.webcamRef}
-        screenshotFormat="image/jpeg"
-        videoConstraints={camera.videoConstraints}
-        style={modalStyles.webcam}
-      />
+      {!cameraError && (
+        <Webcam
+          audio={false}
+          ref={camera.webcamRef}
+          screenshotFormat="image/jpeg"
+          videoConstraints={camera.videoConstraints}
+          style={modalStyles.webcam}
+          mirrored={camera.videoConstraints.facingMode === "user"}
+          playsInline={true}
+          autoPlay={true}
+          muted={true}
+          forceScreenshotSourceSize={true}
+          onUserMediaError={(err) => {
+            console.error("Media error:", err);
+            setCameraError("Failed to access camera. Please check permissions and try again.");
+          }}
+        />
+      )}
+      
+      {cameraError && (
+        <div style={modalStyles.errorMessage}>
+          {cameraError}
+        </div>
+      )}
       
       <button 
         style={modalStyles.closeButton}
@@ -128,10 +178,13 @@ const WebCameraModal = ({ isOpen, onClose, onCapture }) => {
         <button 
           style={modalStyles.captureButton}
           onClick={handleCapture}
+          disabled={!!cameraError}
         />
       </div>
     </div>
   );
+
+  return ReactDOM.createPortal(modal, document.body);
 };
 
 export default WebCameraModal;
