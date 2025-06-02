@@ -36,7 +36,7 @@
 The diagnostic system allows testing features in isolation. Access it:
 
 - In development: http://localhost:3000/diagnostics
-- In production: Press Ctrl+Shift+D to enable, then navigate to /diagnostics
+- In production: Press Ctrl+Alt+Shift+D to enable, then navigate to /diagnostics
 
 ## Environment Configuration
 

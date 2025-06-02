@@ -1,14 +1,11 @@
+const cloudinary = require("cloudinary").v2;
 const functions = require("firebase-functions");
-const {v2: cloudinary} = require("cloudinary");
-const os = require("os");
-const fs = require("fs");
-const path = require("path");
 
-// Configure Cloudinary with environment variables from Firebase config
+// Configure Cloudinary with environment variables
 cloudinary.config({
-  cloud_name: functions.config().cloudinary ? functions.config().cloudinary.name : undefined,
-  api_key: functions.config().cloudinary ? functions.config().cloudinary.api_key : undefined,
-  api_secret: functions.config().cloudinary ? functions.config().cloudinary.api_secret : undefined,
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
 /**

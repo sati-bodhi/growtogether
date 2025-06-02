@@ -24,7 +24,7 @@
   ],
   "hosting": {
     "site": "blng-grow-together",
-    "public": "public",
+    "public": "build",
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -38,6 +38,12 @@
           { "key": "Access-Control-Allow-Methods", "value": "GET,HEAD,PUT,POST,DELETE" },
           { "key": "Access-Control-Allow-Headers", "value": "Origin, X-Requested-With, Content-Type, Accept" }
         ]
+      }
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
       }
     ]
   },
