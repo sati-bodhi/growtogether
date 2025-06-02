@@ -13,7 +13,6 @@
 
 # misc
 .DS_Store
-.env.local
 .env.development.local
 .env.test.local
 .env.production.local
@@ -24,3 +23,16 @@ yarn-error.log*
 
 # secrets
 .env.local
+functions/.env
+
+# Ignore log files
+*.log
+
+# Ignore Firebase directory
+.firebase/
+
+# Ignore specific log files
+firebase-debug.log
+firestore-debug.log
+functions/firestore-debug.log
+

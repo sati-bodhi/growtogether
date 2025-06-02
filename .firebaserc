@@ -1,5 +1,15 @@
 {
   "projects": {
     "default": "blng-beda9"
-  }
+  },
+  "targets": {
+    "blng-beda9": {
+      "hosting": {
+        "site-name": [
+          "blng-grow-together"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }
